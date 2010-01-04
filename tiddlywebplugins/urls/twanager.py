@@ -7,7 +7,8 @@ twanager url selector_path destination
 """
 from tiddlywebplugins.urls.config import config as urls_config
 
-from tiddlyweb.manage import _store, make_command
+from tiddlyweb.manage import make_command
+from tiddlyweb.commands import _store
 from tiddlyweb.model.tiddler import Tiddler
 from tiddlyweb.config import config
 
