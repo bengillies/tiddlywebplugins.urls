@@ -18,7 +18,7 @@ from tiddlywebplugins.urls.config import config as urls_config
 from tiddlywebplugins.urls.register import register_urls, refresh_urls
 from tiddlywebplugins.urls.twanager import url
 
-from tiddlyweb.config import merge_config
+from tiddlyweb.util import merge_config
 from tiddlyweb import control
 from tiddlyweb.store import Store
 
