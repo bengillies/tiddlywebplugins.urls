@@ -3,7 +3,7 @@ AUTHOR = 'Ben Gillies'
 AUTHOR_EMAIL = 'bengillies@gmail.com'
 NAME = 'tiddlywebplugins.urls'
 DESCRIPTION = 'Map TiddlyWeb URLs to your own custom URLs'
-VERSION = '0.3'
+VERSION = '0.4'
 
 
 import os
