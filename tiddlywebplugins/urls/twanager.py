@@ -8,10 +8,10 @@ twanager url selector_path destination
 from tiddlywebplugins.urls.config import config as urls_config
 
 from tiddlyweb.manage import make_command
-from tiddlyweb.commands import _store
 from tiddlyweb.model.tiddler import Tiddler
 from tiddlyweb.config import config
 
+from tiddlywebplugins.utils import get_store
 import sys
 
 @make_command()
@@ -20,7 +20,7 @@ def url(args):
     if 2 != len(args) != 3:
         print >> sys.stderr, ('you must include both the path you want to use (selector path) and the destination url')
         
-    store = _store()
+    store = get_store(config)
     
     if args[0] == '--redirect':
         redirect = args.pop(0).lstrip('-')

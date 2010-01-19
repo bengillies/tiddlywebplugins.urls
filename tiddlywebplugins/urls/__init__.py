@@ -20,15 +20,14 @@ from tiddlywebplugins.urls.twanager import url
 
 from tiddlyweb.util import merge_config
 from tiddlyweb import control
-from tiddlyweb.store import Store
 
-from tiddlywebplugins.utils import ensure_bag
+from tiddlywebplugins.utils import ensure_bag, get_store
 
 def init(config):
     #merge the custom config information
     merge_config(config, urls_config)
     
-    store = Store(config['server_store'][0], {'tiddlyweb.config':config})
+    store = get_store(config)
     
     #make sure the urls bag exists
     bag_name = config['url_bag']
