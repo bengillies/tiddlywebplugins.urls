@@ -17,6 +17,21 @@ config={
         'accept': ['R:ADMIN'],
         'write': ['R:ADMIN'],
         'owner': 'administrator',
-        'delete': ['R:ADMIN'],
+        'delete': ['R:ADMIN']
+    },
+    'analytics_names': {
+        'bag_name': 'analytics_bags',
+        'recipe_name': 'analytics_recipes',
+        'redirect_name': 'analytics_redirects'
+    },
+    'analytics_description': 'Analytics information stored by tiddlywebplugins.urls',
+    'analytics_policy': {
+        'read': ['R:ADMIN'],
+        'create': ['R:ADMIN'],
+        'manage': ['R:ADMIN'],
+        'accept': ['R:ADMIN'],
+        'write': ['R:ADMIN'],
+        'owner': 'administrator',
+        'delete': ['R:ADMIN']
     }
 }

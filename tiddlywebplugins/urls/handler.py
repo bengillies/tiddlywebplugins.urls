@@ -4,10 +4,12 @@ the main entry point for all urls
 from tiddlyweb.filters import parse_for_filters
 from tiddlyweb.control import get_tiddlers_from_bag
 from tiddlyweb.model.bag import Bag
+from tiddlyweb.model.tiddler import Tiddler
 from tiddlyweb.web.handler.recipe import get_tiddlers as recipe_tiddlers
 from tiddlyweb.web.handler.bag import get_tiddlers as bag_tiddlers
 from tiddlyweb.web.handler.tiddler import get as tiddler_get
 
+from tiddlywebplugins.utils import ensure_bag
 import re
 
 
@@ -47,6 +49,9 @@ def get_handler(environ, start_response):
     if is_redirect(match):
         if destination_url.startswith('www.'):
             destination_url = 'http://' + destination_url
+            
+        if 'analytics' in match.tags:
+            store_analytics(environ, environ['tiddlyweb.config']['analytics_names']['redirect_name'], match.title)
         #redirect to the url and return
         start_response('301 Moved Permanently', [
             ('Location', str(destination_url))
@@ -71,7 +76,6 @@ Please see <a href="%s">%s</a>
     destination_parts = figure_destination(url_part)
     for part, value in destination_parts.iteritems():
         if part == 'extension':
-            environ['tiddlyweb.extension'] = str(value)
             mime_type = environ['tiddlyweb.config']['extension_types'].get(value, None)
         else:
             environ['wsgiorg.routing_args'][1][part] = str(value)
@@ -85,14 +89,66 @@ Please see <a href="%s">%s</a>
     #set tiddlyweb.type to make sure we call the correct serializer
     environ['tiddlyweb.type'] = [mime_type]
     
-    if 'tiddler_name' in environ['wsgiorg.routing_args'][1]:
-        return tiddler_get(environ, start_response)
-    elif 'recipe_name' in environ['wsgiorg.routing_args'][1]:
-        return recipe_tiddlers(environ, start_response)
-    elif 'bag_name' in environ['wsgiorg.routing_args'][1]:
-        return bag_tiddlers(environ, start_response)
+    core_handler = analyze_url(environ, destination_parts, match)
     
-    raise InvalidDestinationURL('URL \'%s\' is incorrectly formatted' % destination_url)
+    return core_handler(environ, start_response)
+
+def analyze_url(environ, destination_parts, match):
+    """
+    Figure out which function to call and return that function.
+    
+    Also, work out details for any analytics, if required
+    """
+    if 'recipe_name' in destination_parts:
+        container_type = 'recipe_name'
+    elif 'bag_name' in destination_part:
+        container_type = 'bag_name'
+    else:
+        raise InvalidDestinationURL('URL \'%s\' is incorrectly formatted' % destination_url)
+        
+    tiddler_exists = 'tiddler_name' in destination_parts
+        
+    if 'analytics' in match.tags:
+        #do analytics
+        container_name = destination_parts[container_type]
+        analytic_type = environ['tiddlyweb.config']['analytics_names'][container_type]
+        if tiddler_exists:
+            analytic_bag = '%s_%s' % (analytic_type, container_name)
+        else:
+            analytic_bag = analytic_type
+        store_analytics(environ, analytic_bag, \
+            destination_parts.get('tiddler_name', container_name))
+    
+    if tiddler_exists:
+        return tiddler_get
+    else:
+        handler_funcs = {
+            'recipe_name': recipe_tiddlers,
+            'bag_name': bag_tiddlers
+        }
+        return handler_funcs[container_type]
+        
+def store_analytics(environ, analytic_bag, tiddler_name):
+    """
+    store some useful info about what has been requested
+    and who has requested it
+    """
+    tiddler = Tiddler(tiddler_name)
+    tiddler.bag = analytic_bag
+    tiddler.fields['REMOTE_ADDR'] = environ['REMOTE_ADDR']
+    tiddler.fields['SCRIPT_NAME'] = environ['SCRIPT_NAME']
+    tiddler.fields['HTTP_USER_AGENT'] = environ['HTTP_USER_AGENT']
+    tiddler.fields['QUERY_STRING'] = environ.get('QUERY_STRING', '')
+    
+    tiddler.text = 'User at "%s" accessed "%s" with Agent "%s". ' \
+        'Query String was "%s"' % \
+        (environ['REMOTE_ADDR'], environ['SCRIPT_NAME'], \
+        environ['HTTP_USER_AGENT'], environ.get('QUERY_STRING', ''))
+    
+    ensure_bag(analytic_bag, environ['tiddlyweb.store'], \
+        environ['tiddlyweb.config']['analytics_policy'], \
+        environ['tiddlyweb.config']['analytics_description'])
+    environ['tiddlyweb.store'].put(tiddler)
 
 def match_url(selector, url, potential_matches):
     """
