@@ -74,7 +74,8 @@ Please see <a href="%s">%s</a>
     for part, value in destination_parts.iteritems():
         if part == 'extension':
             environ['tiddlyweb.extension'] = str(value)
-            mime_type = environ['tiddlyweb.config']['extension_types'].get(value)
+            mime_type = \
+                environ['tiddlyweb.config']['extension_types'].get(value)
         else:
             environ['wsgiorg.routing_args'][1][part] = str(value)
     
@@ -96,8 +97,8 @@ Please see <a href="%s">%s</a>
     elif 'bag_name' in environ['wsgiorg.routing_args'][1]:
         return bag_tiddlers(environ, start_response)
     
-    raise InvalidDestinationURL('URL \'%s\' is incorrectly formatted' \
-        % destination_url)
+    raise InvalidDestinationURL('URL \'%s\' is incorrectly formatted' % \
+        destination_url)
 
 def match_url(selector, url, potential_matches):
     """
@@ -150,7 +151,9 @@ def figure_filters(filters, custom_filters):
     if custom_filters:
         custom_filters = parse_for_filters(custom_filters)[0]
         #strip duplicate filters
-        result_filters = [custom_filter for custom_filter in custom_filters if custom_filter[1][0] not in [user_filter[1][0] for user_filter in filters]]
+        user_filters = [user_filter[1][0] for user_filter in filters]
+        result_filters = [custom_filter for custom_filter in custom_filters \
+            if custom_filter[1][0] not in user_filters]
         if len(filters) > 0:
             result_filters.extend(filters)
         return result_filters
@@ -174,7 +177,7 @@ def figure_destination(url_part):
             #split the tiddler to find the extension
             if tiddler.startswith('/'):
                 #we have a tiddler name and optionally an extension
-                tiddler_and_extension = tiddler[1:].rsplit('.',1)
+                tiddler_and_extension = tiddler[1:].rsplit('.', 1)
                 result['tiddler_name'] = tiddler_and_extension[0]
                 if len(tiddler_and_extension) == 2:
                     result['extension'] = tiddler_and_extension[1]
@@ -183,8 +186,8 @@ def figure_destination(url_part):
                 result['extension'] = tiddler[1:]
             
     if not result:
-        raise InvalidDestinationURL('URL \'%s\' is incorrectly formatted' \
-            % url_part)
+        raise InvalidDestinationURL('URL \'%s\' is incorrectly formatted' % \
+            url_part)
     
     return result
     
