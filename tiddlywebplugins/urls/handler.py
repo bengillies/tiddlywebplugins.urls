@@ -39,8 +39,10 @@ def get_handler(environ, start_response):
     #add the username to be more compliant with recipe variables
     selector_variables['user'] = environ['tiddlyweb.usersign']['name']
     
-    potential_matches = get_urls(environ['tiddlyweb.config']['url_bag'], environ['tiddlyweb.store'])
-    match = match_url(environ['tiddlyweb.config']['selector'], environ['selector.matches'][0], potential_matches)
+    potential_matches = get_urls(environ['tiddlyweb.config']['url_bag'], \
+        environ['tiddlyweb.store'])
+    match = match_url(environ['tiddlyweb.config']['selector'], \
+        environ['selector.matches'][0], potential_matches)
     
     destination_url = replace_url_patterns(selector_variables, match.text)
     
@@ -72,11 +74,13 @@ Please see <a href="%s">%s</a>
     for part, value in destination_parts.iteritems():
         if part == 'extension':
             environ['tiddlyweb.extension'] = str(value)
-            mime_type = environ['tiddlyweb.config']['extension_types'].get(value, None)
+            mime_type = environ['tiddlyweb.config']['extension_types'].get(value)
         else:
             environ['wsgiorg.routing_args'][1][part] = str(value)
     
-    destination_parts.update(selector_variables)
+    for key, value in selector_variables.iteritems():
+        if key not in destination_parts:
+            destination_parts[key] = value
     environ['tiddlyweb.recipe_template'] = destination_parts
             
     filters = figure_filters(environ['tiddlyweb.filters'], custom_filters)
@@ -92,7 +96,8 @@ Please see <a href="%s">%s</a>
     elif 'bag_name' in environ['wsgiorg.routing_args'][1]:
         return bag_tiddlers(environ, start_response)
     
-    raise InvalidDestinationURL('URL \'%s\' is incorrectly formatted' % destination_url)
+    raise InvalidDestinationURL('URL \'%s\' is incorrectly formatted' \
+        % destination_url)
 
 def match_url(selector, url, potential_matches):
     """
@@ -101,7 +106,6 @@ def match_url(selector, url, potential_matches):
     return a tuple of (selector_path, destination_url)
     """
     for tiddler in potential_matches:
-        #turn the selector path into the same regex that will appear in selector.matches
         url_regex = selector.parser.__call__(tiddler.title)
         if re.search(url_regex, url):
             #we have found our url
@@ -179,7 +183,8 @@ def figure_destination(url_part):
                 result['extension'] = tiddler[1:]
             
     if not result:
-        raise InvalidDestinationURL('URL \'%s\' is incorrectly formatted' % url_part)
+        raise InvalidDestinationURL('URL \'%s\' is incorrectly formatted' \
+            % url_part)
     
     return result
     
