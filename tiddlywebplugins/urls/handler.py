@@ -9,6 +9,7 @@ from tiddlyweb.web.handler.bag import get_tiddlers as bag_tiddlers
 from tiddlyweb.web.handler.tiddler import get as tiddler_get
 
 import re
+from urllib import quote
 
 
 class NoURLFoundError(IOError):
@@ -202,7 +203,7 @@ def extract_variables(routing_args):
     
     if routing_args:
         for element, value in routing_args.iteritems():
-            variables[element] = value
+            variables[element] = quote(value)
             
     return variables
 
