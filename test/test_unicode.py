@@ -14,6 +14,8 @@ import httplib2
 
 BAGS.append('urls')
 
+config['system_plugins'] = ['tiddlywebplugins.urls']
+
 def test_spaces():
     """
     visit a url destination with spaces

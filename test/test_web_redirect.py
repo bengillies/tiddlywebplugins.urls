@@ -11,6 +11,8 @@ import httplib2
 
 BAGS.append('urls')
 
+config['system_plugins'] = ['tiddlywebplugins.urls']
+
 def test_redirect_with_protocol():
     """
     add a redirect with a named protocol

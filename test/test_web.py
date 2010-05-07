@@ -14,6 +14,8 @@ import httplib2
 
 BAGS.append('urls')
 
+config['system_plugins'] = ['tiddlywebplugins.urls']
+
 def test_load_url_single():
     """
     visit a single tiddler at a custom url

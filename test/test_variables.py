@@ -13,6 +13,8 @@ import httplib2
 
 BAGS.append('urls')
 
+config['system_plugins'] = ['tiddlywebplugins.urls']
+
 def test_replace_variables():
     """
     access a url with variables in the destination
