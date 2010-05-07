@@ -1,7 +1,7 @@
 """
 test the twanager command
 """
-from tiddlywebplugins.urls.helpers import InvalidDestinationURL, InvalidSelectorURL
+from tiddlywebplugins.urls.validator import InvalidDestinationURL, InvalidSelectorURL
 from setup_test import setup_store
 
 from tiddlywebplugins.urls.twanager import url

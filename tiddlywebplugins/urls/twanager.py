@@ -6,6 +6,7 @@ Takes the form:
 twanager url selector_path destination
 """
 from tiddlywebplugins.urls.config import config as urls_config
+from tiddlywebplugins.urls.validator import validate_url
 
 from tiddlyweb.manage import make_command
 from tiddlyweb.model.tiddler import Tiddler
@@ -31,15 +32,13 @@ def url(args):
     destination_url = args[1]
     
     tiddler = Tiddler(selector_path)
-    try:
-        tiddler.bag = config['url_bag']
-    except KeyError:
-        tiddler.bag = urls_config['url_bag']
+    tiddler.bag = config['url_bag']
     
     tiddler.text = destination_url
     if redirect:
         tiddler.tags = [redirect]
     
-    store.put(tiddler)
+    if validate_url(tiddler):
+        store.put(tiddler)
     
     return True

@@ -1,6 +1,9 @@
 """
 the main entry point for all urls
 """
+from tiddlywebplugins.urls.validator import (InvalidDestinationURL, is_redirect,
+    figure_destination, replace_url_patterns)
+
 from tiddlyweb.filters import parse_for_filters
 from tiddlyweb.control import get_tiddlers_from_bag
 from tiddlyweb.model.bag import Bag
@@ -12,20 +15,12 @@ import re
 from urllib import quote
 
 
-class NoURLFoundError(IOError):
+class NoURLFoundError(Exception):
     """
     This shouldn't ever be raised in practise, as if we get 
     into this module, the url has already matched so should 
     match again. If you get this, there is a bug in the code 
     somewhere
-    """
-    pass
-
-class InvalidDestinationURL(IOError):
-    """
-    This is raised when the URL given cannot be figured out.
-    This is due to invalid syntax when inputting the url to
-    map to.
     """
     pass
 
@@ -78,8 +73,11 @@ Please see <a href="%s">%s</a>
             mime_type = \
                 environ['tiddlyweb.config']['extension_types'].get(value)
         else:
-            environ['wsgiorg.routing_args'][1][part] = str(value)
-    
+            try:
+                environ['wsgiorg.routing_args'][1][part] = str(value)
+            except UnicodeEncodeError:
+                environ['wsgiorg.routing_args'][1][part] = str(value.encode('utf8'))
+
     for key, value in selector_variables.iteritems():
         if key not in destination_parts:
             destination_parts[key] = value
@@ -124,22 +122,6 @@ def get_urls(url_bag, store):
     tiddlers = get_tiddlers_from_bag(bag)
     return (tiddler for tiddler in tiddlers)
 
-def is_redirect(tiddler):
-    """
-    determine whether the url is a redirect, or a mask
-    for another tiddlyweb url
-    
-    return True/False
-    """
-    if 'redirect' in tiddler.tags:
-        return True
-    
-    regex = '^(?:\w+:\/\/\/*)|www\.'
-    if re.search(regex, tiddler.text):
-        return True
-    
-    return False
-
 def figure_filters(filters, custom_filters):
     """
     figure out the filters that have been added to the query
@@ -160,39 +142,6 @@ def figure_filters(filters, custom_filters):
         return result_filters
     return filters
 
-def figure_destination(url_part):
-    """
-    Figure out where we are going.
-    
-    return bag/recipe/tiddler name and extension
-    """
-    regex = '^\/((?:recipes)|(?:bags))\/([^\/]+)\/tiddlers([^\?]+)?(?:\??.*)'
-    result = {}
-    
-    matches = re.findall(regex, url_part)
-    for match in matches:
-        container_type, container_name, tiddler = match
-        if container_type in ['recipes', 'bags']:
-            result['%s_name' % container_type[:-1]] = container_name
-        if tiddler:
-            #split the tiddler to find the extension
-            if tiddler.startswith('/'):
-                #we have a tiddler name and optionally an extension
-                tiddler_and_extension = tiddler[1:].rsplit('.', 1)
-                result['tiddler_name'] = tiddler_and_extension[0]
-                if len(tiddler_and_extension) == 2:
-                    result['extension'] = tiddler_and_extension[1]
-            elif tiddler.startswith('.'):
-                #we just have an extension
-                result['extension'] = tiddler[1:]
-            
-    if not result:
-        raise InvalidDestinationURL('URL \'%s\' is incorrectly formatted' % \
-            url_part)
-    
-    return result
-    
-
 def extract_variables(routing_args):
     """
     extract wsgiorg.routing_args and set as appropriate
@@ -203,21 +152,7 @@ def extract_variables(routing_args):
     
     if routing_args:
         for element, value in routing_args.iteritems():
-            variables[element] = quote(value)
+            variables[element] = value
             
     return variables
 
-def replace_url_patterns(replace_variables, url):
-    """
-    replace any variables specified in the desired url, with any
-    patterns specified in selector.
-    
-    uses recipe like syntax (ie - /recipes/{{ foo }}/tiddlers)
-    
-    returns the new url
-    """
-    for index, value in replace_variables.iteritems():
-        if value is not None:
-            url = url.replace('{{ %s }}' % index, value)
-    
-    return url

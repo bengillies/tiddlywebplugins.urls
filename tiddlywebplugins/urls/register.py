@@ -11,7 +11,11 @@ from selector import SimpleParser
 import re
 import logging
 
+
 def register_urls(store, config):
+    """
+    add all the urls in the urls bag to selector
+    """
     url_bag = config['url_bag']
     selector = config['selector']
     
@@ -27,6 +31,9 @@ def register_urls(store, config):
         register_url(selector, tiddler)
 
 def register_url(selector, tiddler):
+    """
+    add a url, defined by a tiddler, to selector
+    """
     replaced = False
     for index, (regex, handler) in enumerate(selector.mappings):
             if regex.match(tiddler.title) is not None or selector.parser(tiddler.title) == regex.pattern:
@@ -37,6 +44,9 @@ def register_url(selector, tiddler):
         selector.add(tiddler.title, GET=get_handler)
 
 def refresh_urls(environ, start_response):
+    """
+    entry point for /urls/refresh
+    """
     store = environ['tiddlyweb.store']
     config = environ['tiddlyweb.config']
     
