@@ -81,7 +81,14 @@ Please see <a href="%s">%s</a>
     for key, value in selector_variables.iteritems():
         if key not in destination_parts:
             destination_parts[key] = value
-    environ['tiddlyweb.recipe_template'] = destination_parts
+
+    #special handling of unicode is required here so that recipe templates will work properly
+    environ['tiddlyweb.recipe_template'] = {}
+    for key, value in destination_parts.iteritems():
+        try:
+            environ['tiddlyweb.recipe_template'][key] = value.decode('utf8')
+        except UnicodeEncodeError:
+            environ['tiddlyweb.recipe_template'][key] = value
             
     filters = figure_filters(environ['tiddlyweb.filters'], custom_filters)
     environ['tiddlyweb.filters'] = filters

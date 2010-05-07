@@ -9,8 +9,10 @@ from tiddlywebplugins.urls import init as urls_init
 from tiddlyweb.config import config
 from tiddlyweb.model.tiddler import Tiddler
 from tiddlyweb.model.recipe import Recipe
+from tiddlyweb.model.bag import Bag
 
 import httplib2
+from urllib import quote
 
 BAGS.append('urls')
 
@@ -133,4 +135,36 @@ def test_unicode_in_variables():
     assert response.status == 200
 
     direct_url = http.request(u'http://test_domain:8001/bags/foo/tiddlers/bar%20œ∑´®†¥.json')[1]
+    assert content == direct_url
+
+def test_unicode_in_recipes():
+    """
+    visit a recipe passing unicode in as one of the variables
+    """
+    store = setup_store()
+    url(['/foo/{bar:segment}', '/recipes/custom/tiddlers'])
+    urls_init(config)
+    setup_web()
+    http = httplib2.Http()
+
+    bag = Bag(u'unicodeø•º∆∆˙ª')
+    store.put(bag)
+    tiddler = Tiddler(u'bar œ∑´®†¥', u'unicodeø•º∆∆˙ª')
+    tiddler.text = 'foo bar'
+    store.put(tiddler)
+
+    recipe = Recipe('custom')
+    recipe.set_recipe([('{{ bar:foo }}', '')])
+    store.put(recipe)
+
+    response, content = http.request('http://test_domain:8001/foo/unicodeø•º∆∆˙ª')
+
+    assert response.status == 200
+
+    direct_url = http.request(u'http://test_domain:8001/recipes/custom/tiddlers')[1]
+    assert content != direct_url #direct_url should load the foo bag instead
+
+    recipe.set_recipe([(u'unicodeø•º∆∆˙ª', '')])
+    store.put(recipe)
+    direct_url = http.request(u'http://test_domain:8001/recipes/custom/tiddlers')[1]
     assert content == direct_url
