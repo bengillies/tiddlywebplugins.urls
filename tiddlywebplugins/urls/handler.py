@@ -38,7 +38,8 @@ def get_handler(environ, start_response):
     potential_matches = get_urls(environ['tiddlyweb.config']['url_bag'], \
         environ['tiddlyweb.store'])
     match = match_url(environ['tiddlyweb.config']['selector'], \
-        environ['selector.matches'][0], potential_matches)
+        environ['selector.matches'][0], potential_matches, \
+        environ['tiddlyweb.store'])
     
     destination_url = replace_url_patterns(selector_variables, match.text)
     
@@ -106,7 +107,7 @@ Please see <a href="%s">%s</a>
     raise InvalidDestinationURL('URL \'%s\' is incorrectly formatted' % \
         destination_url)
 
-def match_url(selector, url, potential_matches):
+def match_url(selector, url, potential_matches, store):
     """
     match the current url with the correct url in the url_bag
     
@@ -116,7 +117,7 @@ def match_url(selector, url, potential_matches):
         url_regex = selector.parser.__call__(tiddler.title)
         if re.search(url_regex, url):
             #we have found our url
-            return tiddler
+            return store.get(tiddler)
     raise NoURLFoundError('URL not found in selector')
 
 def get_urls(url_bag, store):
