@@ -32,27 +32,27 @@ def is_redirect(tiddler):
     """
     determine whether the url is a redirect, or a mask
     for another tiddlyweb url
-    
+
     return True/False
     """
     if 'redirect' in tiddler.tags:
         return True
-    
+
     regex = '^(?:\w+:\/\/\/*)|www\.'
     if re.search(regex, tiddler.text):
         return True
-    
+
     return False
 
 def figure_destination(url_part):
     """
     Figure out where we are going.
-    
+
     return bag/recipe/tiddler name and extension
     """
     regex = '^\/((?:recipes)|(?:bags))\/([^\/]+)\/tiddlers([^\?]+)?(?:\??.*)'
     result = {}
-    
+
     matches = re.findall(regex, url_part)
     for match in matches:
         container_type, container_name, tiddler = match
@@ -69,13 +69,13 @@ def figure_destination(url_part):
             elif tiddler.startswith('.'):
                 #we just have an extension
                 result['extension'] = tiddler[1:]
-            
+
     if not result:
         raise InvalidDestinationURL('URL \'%s\' is incorrectly formatted' % \
             url_part)
-    
+
     return result
- 
+
 def replace_url_patterns(replace_variables, url):
     """
     replace any variables specified in the desired url, with any
