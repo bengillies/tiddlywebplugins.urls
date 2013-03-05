@@ -105,7 +105,7 @@ def validate_url(tiddler):
     
     parser = SimpleParser()
     try:
-        regex = parser.parse(selector_url)
+        regex = parser(selector_url)
         match = re.match(regex, selector_url)
         if match:
             selector_variables = dict((key, key) for key in match.groupdict().iterkeys())
