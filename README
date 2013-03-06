@@ -46,7 +46,7 @@ This configuration creates a link eg: ``http://example.com/default`` that would 
 Flexible Version
 ----------------
 
-Using the above format you'd need to create one tiddler per recipe. This isn't very "user friendly". So we need to be more felxibe, using "placeholders" to define the relation. Now we want to map every recipe_name, that the user may enter eg: ``/wiki/anyRecipeName``::
+Using the above format you'd need to create one tiddler per recipe. This isn't very "user friendly". So we need to be more flexibe, using "placeholders" to define the relation. Now we want to map every recipe_name, that the user may enter eg: ``/wiki/anyRecipeName``::
 
     title: 
     /wiki/{recipe_name:segment}
