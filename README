@@ -1,51 +1,83 @@
 tiddlywebplugins.urls
+=====================
 
-Map a custom URL to a default TiddlyWeb URL
+This plugin lets you:
 
-Uses selector syntax for the custom URL (http://lukearno.com/projects/selector/)
+* Map a custom URL to a default TiddlyWeb URL.
+* Map a custom URL to any other URL, for use as a URL shortener
 
-Also lets you map a custom URL to any other URL, for use as a URL shortener
+It uses selector syntax for the custom URL (http://lukearno.com/projects/selector/)
 
-Usage:
+Configuration
+-------------
 
-to bring up a tiddlywiki at /wiki/foo, create a tiddler like follows:
+This plugin is a "system" and a "twanager" plugin. Type ``twanager usage`` in the command line. Your ``tiddlywebconfig.py`` should look similar to this configuration::
 
-    title:
-    /wiki/{bag_name:segment}
+    config = {
+    'system_plugins': ['tiddlywebwiki', 'tiddlywebplugins.urls' ],
+    'secret': 'XXXXXXXX',
+    'twanager_plugins': ['tiddlywebwiki', 'tiddlywebplugins.urls'],
 
-    text:
-    /bags/{{ bag_name }}/tiddlers.wiki
+    # the tiddlywebwiki.friendlywiki function doesn't work with urls plugin, 
 
-alternately:
+    # it needs to be disabled.
+    'tiddlywebwiki.friendlywiki': False,
 
-    title:
-    /wiki/{bag_name:segment}
+    #'url_bag':'__urls',
+    }
 
-    text:
-    /recipes/edit_wiki/tiddlers.wiki
+Note: All urls are stored in a bag called "urls" by default. 
 
-    recipe (edit_wiki in this case):
-    desc:
-    policy: {"read": [], "create": [], "manage": [], "write": [], "owner": null, "delete": []}
+The name of this bag can be changed by adding "urls_bag" to tiddlywebconfig.py, but all tiddlers in the bag must be "url tiddlers" of the described format. If this bag doesn't exists already, it will be created automatically.
 
-    /bags/system/tiddlers
-    /bags/{{ bag_name }}/tiddlers
+Rewrite URLs
+============
 
-where bag_name can be any variable name.
-
-Note that this does not support PUTs, so if the second example is used, you may be unable to PUT to the the recipe 
-(unless you provide a default for bag_name).
-
-To create a short link to google.com, you might do:
+To bring up a tiddlywiki at ``/default``, create a tiddler like::
 
     title:
-    /google
-    
-    text:
-    http://www.google.com
-    
+    /default
 
-If you want to redirect to an internal URL, you can also add the tag "redirect":
+    text:
+    /recipes/default/tiddlers.wiki
+
+This configuration creates a link eg: ``http://example.com/default`` that would otherwise be: ``http://example.com/recipes/default/tiddlers.wiki``, which is still valid. Be sure the recipe named "default" exists!
+
+Flexible Version
+----------------
+
+Using the above format you'd need to create one tiddler per recipe. This isn't very "user friendly". So we need to be more felxibe, using "placeholders" to define the relation. Now we want to map every recipe_name, that the user may enter eg: ``/wiki/anyRecipeName``::
+
+    title: 
+    /wiki/{recipe_name:segment}
+
+    text:
+    /recipes/{{ recipe_name }}/tiddlers.wiki
+
+A URL ``http://example.com/wiki/myWiki`` will load ``http://example.com/recipes/myWiki/tiddlers.wiki``
+
+Link to a Single Page Application
+---------------------------------
+
+It is possible to directly link to a single tiddler within a recipe or bag::
+
+    title: 
+    /spa/{spa_name:segment}
+
+    text:
+    /recipes/my_recipe/tiddlers/{{ spa_name }}
+    or
+    /bags/my_bag/tiddlers/{{ spa_name }}
+
+Be aware of the title ``/spa`` prefix. It is optional. Here it is used, to separate the function from the "Rewrite Recipe URL" configuration. 
+
+Redirect URLs
+=============
+
+Redirect to internal URL
+------------------------
+
+If you want to redirect instead of rewrite to an internal URL, you can add the tag "redirect"::
 
     title:
     /wiki/{user:segment}
@@ -56,9 +88,41 @@ If you want to redirect to an internal URL, you can also add the tag "redirect":
     text:
     /recipes/{{ user }}/tiddlers.wiki
 
+Be aware, that adding a user will not automatically add a user recipe. So if you need one, you need to create it. 
+
+Redirect to exernal URL
+-----------------------
+
+To create a short link to google.com, you might do the following. There is no need for the "redirect" tag::
+
+    title:
+    /google
+    
+    text:
+    http://www.google.com
 
 
+Experimental
+============
 
-Please note: all urls are stored in a bag called "urls" by default. The name of this bag can be changed by adding 
-"urls_bag" to tiddlywebconfig.py, but all tiddlers in the bag must be "url tiddlers" of the above format. If this bag 
-doesn't exists already, it will be created automatically.
+If we create a tiddlywiki with a bag eg: ``/bags/{{ bag_name }}/tiddlers.wiki`` it will be loaded as a TiddlyWiki representation, but it is not saveable:: 
+
+    title:
+    /test/{bag_name:segment}
+
+    text:
+    /recipes/experiment/tiddlers.wiki
+
+The ``experiment`` recipe needs to look similar to this one (in production you'll need access rights!)::
+
+    desc: some description text ...
+    policy: {"read": [], "create": [], "manage": [R:ADMIN], "write": [], "owner": null, "delete": []}
+
+    /bags/system/tiddlers
+    /bags/{{ bag_name }}/tiddlers
+
+Where bag_name can be any variable name.
+
+Note that this does not support PUTs, you are unable to PUT to the recipe (unless you provide a default for bag_name). This version needs a client side plugin to work with PUTs.
+
+
