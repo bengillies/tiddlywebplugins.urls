@@ -3,13 +3,11 @@ AUTHOR = 'Ben Gillies'
 AUTHOR_EMAIL = 'bengillies@gmail.com'
 NAME = 'tiddlywebplugins.urls'
 DESCRIPTION = 'Map TiddlyWeb URLs to your own custom URLs'
-VERSION = '0.6'
-
+VERSION = '0.6.1'
 
 import os
 
 from setuptools import setup, find_packages
-
 
 # You should carefully review the below (install_requires especially).
 setup(
